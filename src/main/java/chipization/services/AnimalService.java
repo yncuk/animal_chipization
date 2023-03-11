@@ -1,20 +1,12 @@
 package chipization.services;
 
 import chipization.model.Animal;
-import chipization.model.TypeAnimal;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
 
 import java.util.Collection;
 
 public interface AnimalService {
-    TypeAnimal findById(Long typeId);
-
-    TypeAnimal create(TypeAnimal typeAnimal);
-
-    TypeAnimal update(Long typeId, TypeAnimal typeAnimal);
-
-    void delete(Long typeId);
 
     Animal findAnimalById(Long animalId);
 

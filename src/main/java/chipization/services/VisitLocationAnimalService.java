@@ -2,21 +2,20 @@ package chipization.services;
 
 import chipization.model.VisitLocation;
 import chipization.model.dto.VisitLocationDto;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import chipization.model.dto.VisitLocationResponse;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 
 public interface VisitLocationAnimalService {
-    Collection<VisitLocation> findAllVisitLocations(Long animalId,
-                                                    LocalDateTime startDateTime,
-                                                    LocalDateTime endDateTime,
-                                                    int from,
-                                                    int size);
-    VisitLocation addVisitLocation(Long animalId, Long pointId);
+    Collection<VisitLocationResponse> findAllVisitLocations(Long animalId,
+                                                            OffsetDateTime startDateTime,
+                                                            OffsetDateTime endDateTime,
+                                                            int from,
+                                                            int size);
+    VisitLocationResponse addVisitLocation(Long animalId, Long pointId);
 
-    VisitLocation updateVisitLocation(Long animalId, VisitLocationDto visitLocationDto);
+    VisitLocationResponse updateVisitLocation(Long animalId, VisitLocationDto visitLocationDto);
 
     void deleteVisitLocation(Long animalId, Long visitedPointId);
 }

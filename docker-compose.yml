@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  # Сервис для разворачивания контейнера с базой данных
+  database:
+    image: postgres:15
+    volumes:
+      - /var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=animal_chipization
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+
+
+  # Сервис для разворачивания контейнера с приложением
+  webapi:
+    image: animal_chipization:1.0-SNAPSHOT
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/animal_chipization
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+
+
+  # Сервис для разворачивания контейнера с автотестами
+  tests:
+    image: mrexpen/planet_olymp_phase1:latest
+    pull_policy: always
+    ports:
+      - "8090:8080"
+    depends_on:
+      - webapi
+    environment:
+      SERVER_URL: http://webapi:8080
+      STAGE: all
+      # all - запуск всех тестов из трёх доступных этапов
+      # 0, 1 или 2 - запуск тестов для соответствующего этапа

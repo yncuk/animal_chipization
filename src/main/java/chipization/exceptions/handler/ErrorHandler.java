@@ -1,6 +1,8 @@
-package chipization.handler;
+package chipization.exceptions.handler;
 
 import chipization.exceptions.EntityBadRequestException;
+import chipization.exceptions.EntityForbiddenException;
+import chipization.exceptions.EntityNotAuthorizedException;
 import chipization.exceptions.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,6 +25,20 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleNotAuthorized(final EntityNotAuthorizedException e) {
+        log.debug("Ошибка 401, сообщение об ошибке: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbidden(final EntityForbiddenException e) {
+        log.debug("Ошибка 403, сообщение об ошибке: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(final EntityNotFoundException e) {
         log.debug("Ошибка 404, сообщение об ошибке: {}", e.getMessage());
@@ -35,6 +51,7 @@ public class ErrorHandler {
         log.debug("Ошибка 409, сообщение об ошибке: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
+
 
 
 }

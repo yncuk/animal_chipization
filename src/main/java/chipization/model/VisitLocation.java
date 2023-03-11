@@ -6,6 +6,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "visit_locations")
@@ -19,11 +20,8 @@ public class VisitLocation {
     private Long id;
 
     @Column(name = "date_time_of_visit_location_point")
-    private LocalDateTime dateTimeOfVisitLocationPoint;
+    private OffsetDateTime dateTimeOfVisitLocationPoint;
 
     @Column(name = "location_point_id")
     private Long locationPointId;
-
-    @Column(name = "animal_id")
-    private Long animalId;
 }

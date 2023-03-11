@@ -6,5 +6,6 @@ import chipization.model.dto.UserDto;
 public interface UserService {
 
     UserDto registrationUser(User user);
-    String getText(String text);
+
+    Boolean isAuthorized(String auth);
 }

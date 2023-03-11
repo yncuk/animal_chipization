@@ -10,7 +10,9 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import javax.validation.constraints.*;
+import java.io.Serializable;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Entity
@@ -19,22 +21,33 @@ import java.util.List;
 @Setter
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Animal {
+public class Animal implements Serializable {
 
     @Id
     @Column(name = "animal_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToMany(mappedBy = "animal_id")
-    List<TypeAnimal> animalTypes;
+    @ElementCollection
+    @CollectionTable(name = "animals_type_animal",
+            joinColumns = @JoinColumn(name = "animal_id"))
+    @JoinColumn(name = "animal_id")
+    @Column(name = "type_id")
+    List<Long> animalTypes;
 
+    @Positive
+    @NotNull
     Float weight;
 
+    @Positive
+    @NotNull
     Float length;
 
+    @Positive
+    @NotNull
     Float height;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     AnimalGender gender;
 
@@ -43,18 +56,26 @@ public class Animal {
     LifeStatus lifeStatus;
 
     @Column(name = "chipping_date_time")
-    LocalDateTime chippingDateTime;
+    OffsetDateTime chippingDateTime;
 
+    @Positive
+    @NotNull
     @Column(name = "chipper_id")
     Integer chipperId;
 
+    @Positive
+    @NotNull
     @Column(name = "chipping_location_id")
     Long chippingLocationId;
 
-    @OneToMany(mappedBy = "animal_id")
-    List<Location> visitedLocations;
+    @ElementCollection
+    @CollectionTable(name = "animals_visit_locations",
+            joinColumns = @JoinColumn(name = "animal_id"))
+    @JoinColumn(name = "animal_id")
+    @Column(name = "location_id")
+    List<Long> visitedLocations;
 
     @Column(name = "death_date_time")
-    LocalDateTime deathDateTime;
+    OffsetDateTime deathDateTime;
 
 }
