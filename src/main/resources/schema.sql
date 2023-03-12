@@ -49,10 +49,12 @@ create table if not exists animals_type_animal
 (
     animal_id bigint not null
         constraint animals_type_animal_animals_animal_id_fk
-            references animals,
+            references animals
+            on delete cascade,
     type_id   bigint not null
         constraint animals_type_animal_type_animal_type_id_fk
-            references type_animal,
+            references type_animal
+            on delete cascade,
     constraint animals_type_animal_pk
         primary key (animal_id, type_id)
 );
@@ -65,15 +67,18 @@ create table if not exists visit_locations
     location_point_id                 bigint
         constraint visit_location_locations_location_id_fk
             references locations
+            on delete cascade
 );
 create table if not exists animals_visit_locations
 (
     animal_id   bigint not null
         constraint animals_locations_animals_animal_id_fk
-            references animals,
+            references animals
+            on delete restrict,
     location_id bigint not null
         constraint animals_visit_locations_visit_locations_visit_location_id_fk
-            references locations,
+            references locations
+            on delete restrict,
     constraint animals_locations_pk
         primary key (animal_id, location_id)
 );

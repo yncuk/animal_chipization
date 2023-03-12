@@ -6,13 +6,14 @@ import chipization.model.dto.VisitLocationResponse;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.List;
 
 public interface VisitLocationAnimalService {
     Collection<VisitLocationResponse> findAllVisitLocations(Long animalId,
-                                                            OffsetDateTime startDateTime,
-                                                            OffsetDateTime endDateTime,
-                                                            int from,
-                                                            int size);
+                                                      OffsetDateTime startDateTime,
+                                                      OffsetDateTime endDateTime,
+                                                      int from,
+                                                      int size);
     VisitLocationResponse addVisitLocation(Long animalId, Long pointId);
 
     VisitLocationResponse updateVisitLocation(Long animalId, VisitLocationDto visitLocationDto);

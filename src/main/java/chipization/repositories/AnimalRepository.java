@@ -21,5 +21,9 @@ public interface AnimalRepository extends JpaRepository<Animal, Long>, QuerydslP
 
     Optional<Animal> findByChipperId(Integer id);
 
-    Optional<Animal> findByChippingLocationId(Long id);
+    @Query(value = " select a.*, avl.location_id, l.location_id from animals a " +
+            "left join animals_visit_locations as avl on a.animal_id = avl.animal_id " +
+            "left join locations as l on avl.location_id = l.location_id " +
+            "where l.location_id = ?1", nativeQuery = true)
+    Optional<Animal> findAnimalLocation(Long id);
 }

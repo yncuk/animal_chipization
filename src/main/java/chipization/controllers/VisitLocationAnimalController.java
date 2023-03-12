@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/animals")
@@ -28,14 +29,14 @@ public class VisitLocationAnimalController {
     private final AccountService accountService;
 
     @GetMapping("/{animalId}/locations")
-    public Collection<VisitLocationResponse> search(@RequestHeader(value = "Authorization", required = false) String auth,
-                                                    @PathVariable Long animalId,
-                                                    @RequestParam(required = false) OffsetDateTime startDateTime,
-                                                    @RequestParam(required = false) OffsetDateTime endDateTime,
-                                                    @RequestParam(defaultValue = "0") Integer from,
-                                                    @RequestParam(defaultValue = "10") Integer size) {
+    public ResponseEntity<Collection<VisitLocationResponse>> search(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                              @PathVariable Long animalId,
+                                                              @RequestParam(required = false) OffsetDateTime startDateTime,
+                                                              @RequestParam(required = false) OffsetDateTime endDateTime,
+                                                              @RequestParam(defaultValue = "0") Integer from,
+                                                              @RequestParam(defaultValue = "10") Integer size) {
         accountService.checkAuthorization(auth);
-        return visitLocationAnimalService.findAllVisitLocations(animalId, startDateTime, endDateTime, from, size);
+        return ResponseEntity.ok(visitLocationAnimalService.findAllVisitLocations(animalId, startDateTime, endDateTime, from, size));
     }
 
     @PostMapping("/{animalId}/locations/{pointId}")

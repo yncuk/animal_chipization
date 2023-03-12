@@ -59,7 +59,7 @@ public class LocationServiceImpl implements LocationService {
         if (pointId <= 0) {
             throw new EntityBadRequestException("ID локации должен быть больше 0");
         }
-        if(animalRepository.findByChippingLocationId(pointId).isPresent()) {
+        if (animalRepository.findAnimalLocation(pointId).isPresent()) {
             throw new EntityBadRequestException("ID локации связан с животным и не может быть удален");
         }
         locationRepository.findById(pointId)

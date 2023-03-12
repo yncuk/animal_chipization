@@ -20,6 +20,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +38,17 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
         if (size <= 0 || from < 0) {
             throw new EntityBadRequestException("Количество пропущенных элементов и страниц не должно быть меньше 0");
         }
-
         animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
-
+        if (startDateTime == null && endDateTime == null) {
+            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutStartAndEndTime(animalId, size, from));
+        }
+        if (startDateTime == null) {
+            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutStartTime(animalId, endDateTime, size, from));
+        }
+        if (endDateTime == null) {
+            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutEndTime(animalId, startDateTime, size, from));
+        }
         return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocations(animalId, startDateTime, endDateTime, size, from));
     }
 
@@ -57,15 +65,25 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
         }
         locationRepository.findById(pointId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдена точка локации"));
-        VisitLocation visitLocation = new VisitLocation();
-        visitLocation.setDateTimeOfVisitLocationPoint(OffsetDateTime.now());
-        visitLocation.setLocationPointId(pointId);
         if (animal.getVisitedLocations().isEmpty() && Objects.equals(animal.getChippingLocationId(), pointId)) {
             throw new EntityBadRequestException("Нельзя добавить точку локации равную точке чипирования");
         }
-        VisitLocation visitLocationNew = visitLocationRepository.save(visitLocation);
         List<Long> visitedLocations = animal.getVisitedLocations();
-        visitedLocations.add(pointId);
+        List<VisitLocation> animalVisitLocations = visitLocationRepository.findAllWhereAnimalId(animalId);
+        for (VisitLocation currentVisitLocation : animalVisitLocations) {
+            if (Objects.equals(currentVisitLocation.getLocationPointId(), pointId)) {
+                throw new EntityBadRequestException("Попытка добавить животному ту же точку");
+            }
+        }
+
+        VisitLocation visitLocation = new VisitLocation();
+        visitLocation.setDateTimeOfVisitLocationPoint(OffsetDateTime.now());
+        visitLocation.setLocationPointId(pointId);
+
+        VisitLocation visitLocationNew = visitLocationRepository.save(visitLocation);
+
+        visitedLocations.add(visitLocationNew.getId());
+
         animal.setVisitedLocations(visitedLocations);
         animal.setChippingLocationId(pointId);
         animalRepository.save(animal);
@@ -109,6 +127,9 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
         }
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
+        if (!animal.getVisitedLocations().contains(visitedPointId)) {
+            throw new EntityNotFoundException("У животного нет объекта с информацией о посещенной точке локации с таким ID");
+        }
         VisitLocation visitLocation = visitLocationRepository.findById(visitedPointId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдена точка локации для удаления"));
         visitLocationRepository.deleteById(visitedPointId);

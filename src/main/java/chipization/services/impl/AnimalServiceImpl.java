@@ -133,6 +133,10 @@ public class AnimalServiceImpl implements AnimalService {
             throw new EntityBadRequestException("Животное не может воскреснуть :(");
         }
         animal.setId(animalId);
+        animal.setAnimalTypes(animalOld.getAnimalTypes());
+        animal.setChippingDateTime(animalOld.getChippingDateTime());
+        animal.setVisitedLocations(animalOld.getVisitedLocations());
+        animal.setDeathDateTime(animalOld.getDeathDateTime());
         return animalRepository.save(animal);
     }
 

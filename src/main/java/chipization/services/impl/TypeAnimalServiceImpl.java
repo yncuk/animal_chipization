@@ -42,6 +42,9 @@ public class TypeAnimalServiceImpl implements TypeAnimalService {
         if (typeId <= 0) {
             throw new EntityBadRequestException("ID типа животного не может быть отрицательным");
         }
+        if (typeAnimalRepository.findAnimalWithType(typeId)) {
+            throw new EntityBadRequestException("ID типа животного связан с животным и не может быть удален");
+        }
         typeAnimalRepository.findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного для удаления"));
         typeAnimalRepository.deleteById(typeId);
