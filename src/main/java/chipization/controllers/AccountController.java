@@ -1,6 +1,5 @@
 package chipization.controllers;
 
-import chipization.exceptions.EntityNotAuthorizedException;
 import chipization.model.User;
 import chipization.model.dto.GetUsersRequest;
 import chipization.model.dto.UserDto;
@@ -22,8 +21,9 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping("/{accountId}")
-    public ResponseEntity<UserDto> findById(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Integer accountId) {
-        accountService.checkAuthorization(auth);
+    public ResponseEntity<UserDto> findById(@RequestHeader(value = "Authorization", required = false) String auth,
+                                            @PathVariable Integer accountId) {
+        accountService.checkAuthorizationForGet(auth);
         return ResponseEntity.ok(accountService.findById(accountId));
     }
 
@@ -34,26 +34,21 @@ public class AccountController {
                                                       @RequestParam(required = false) String email,
                                                       @RequestParam(defaultValue = "0") Integer from,
                                                       @RequestParam(defaultValue = "10") Integer size) {
-        accountService.checkAuthorization(auth);
+        accountService.checkAuthorizationForGet(auth);
         return ResponseEntity.ok(accountService.search(GetUsersRequest.of(firstName, lastName, email, from, size)));
     }
 
     @PutMapping("/{accountId}")
-    public ResponseEntity<UserDto> update(@RequestHeader(value = "Authorization", required = false) String auth, @RequestBody @Valid User user, @PathVariable Integer accountId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public ResponseEntity<UserDto> update(@RequestHeader(value = "Authorization", required = false) String auth,
+                                          @RequestBody @Valid User user, @PathVariable Integer accountId) {
         accountService.checkAuthorization(auth);
         return ResponseEntity.ok(accountService.update(auth, accountId, user));
     }
 
     @DeleteMapping("/{accountId}")
-    public void delete(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Integer accountId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public void delete(@RequestHeader(value = "Authorization", required = false) String auth,
+                       @PathVariable Integer accountId) {
         accountService.checkAuthorization(auth);
         accountService.delete(auth, accountId);
     }
-
 }

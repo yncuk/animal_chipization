@@ -1,7 +1,6 @@
 package chipization.services.impl;
 
 import chipization.exceptions.EntityBadRequestException;
-import chipization.exceptions.EntityForbiddenException;
 import chipization.model.*;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
@@ -12,13 +11,9 @@ import chipization.services.AnimalService;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,9 +30,7 @@ public class AnimalServiceImpl implements AnimalService {
 
     @Override
     public Animal findAnimalById(Long animalId) {
-        if (animalId <= 0) {
-            throw new EntityBadRequestException("ID животного должен быть больше 0");
-        }
+        validateAnimalId(animalId);
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
         if (animal.getVisitedLocations().isEmpty()) {
@@ -51,58 +44,49 @@ public class AnimalServiceImpl implements AnimalService {
         if (getAnimalsRequest.getSize() <= 0 || getAnimalsRequest.getFrom() < 0) {
             throw new EntityBadRequestException("Количество пропущенных элементов и страниц не должно быть меньше 0");
         }
-        if (getAnimalsRequest.getStartDateTime() == null && getAnimalsRequest.getEndDateTime() == null
-                && getAnimalsRequest.getChipperId() == null && getAnimalsRequest.getChippingLocationId() == null
-                && getAnimalsRequest.getLifeStatus() == null && getAnimalsRequest.getGender() == null) {
-            return new ArrayList<>();
-        }
-
         QAnimal animal = QAnimal.animal;
-
         List<BooleanExpression> conditions = new ArrayList<>();
-
         if (getAnimalsRequest.hasStartTime()) {
             conditions.add(animal.chippingDateTime.after(getAnimalsRequest.getStartDateTime()));
         }
-
         if (getAnimalsRequest.hasEndTime()) {
             conditions.add(animal.chippingDateTime.before(getAnimalsRequest.getEndDateTime()));
         }
-
         if (getAnimalsRequest.hasChipperId()) {
             conditions.add(animal.chipperId.eq(getAnimalsRequest.getChipperId()));
         }
-
         if (getAnimalsRequest.hasChippingLocationId()) {
             conditions.add(animal.chippingLocationId.eq(getAnimalsRequest.getChippingLocationId()));
         }
-
         if (getAnimalsRequest.hasLifeStatus()) {
             conditions.add(animal.lifeStatus.eq(getAnimalsRequest.getLifeStatus()));
         }
-
         if (getAnimalsRequest.hasGender()) {
             conditions.add(animal.gender.eq(getAnimalsRequest.getGender()));
         }
-
+        if (conditions.stream().reduce(BooleanExpression::and).isEmpty()) {
+            return new ArrayList<>();
+        }
         BooleanExpression finalCondition = conditions.stream()
                 .reduce(BooleanExpression::and)
                 .get();
 
-        Sort sort = Sort.by("animal_id").ascending();
-
         Iterable<Animal> animals = animalRepository.findAll(finalCondition);
         List<Animal> result = new ArrayList<>();
         for (Animal currentAnimal : animals) {
+            if (currentAnimal.getVisitedLocations().isEmpty()) {
+                currentAnimal.setVisitedLocations(null);
+            }
             result.add(currentAnimal);
         }
-        return result.stream().skip(getAnimalsRequest.getFrom()).limit(getAnimalsRequest.getSize()).sorted().collect(Collectors.toList());
-        //return animalRepository.search(getAnimalsRequest.getStartDateTime());
+        return result.stream()
+                .skip(getAnimalsRequest.getFrom())
+                .limit(getAnimalsRequest.getSize())
+                .sorted(Comparator.comparing(Animal::getId))
+                .collect(Collectors.toList());
     }
 
-
     @Override
-    @Transactional
     public Animal createAnimal(Animal animal) {
         validateAnimalTypes(animal);
         validateGender(animal);
@@ -121,6 +105,7 @@ public class AnimalServiceImpl implements AnimalService {
 
     @Override
     public Animal updateAnimal(Long animalId, Animal animal) {
+        validateAnimalId(animalId);
         validateGender(animal);
         validateLifeStatus(animal);
         userRepository.findById(animal.getChipperId())
@@ -132,72 +117,94 @@ public class AnimalServiceImpl implements AnimalService {
         if (animalOld.getLifeStatus().equals(LifeStatus.DEAD) && animal.getLifeStatus().equals(LifeStatus.ALIVE)) {
             throw new EntityBadRequestException("Животное не может воскреснуть :(");
         }
+
+        if (animalOld.getVisitedLocations() != null && animalOld.getVisitedLocations().size() != 0) {
+            List<VisitLocation> visitLocations = new ArrayList<>();
+            for (Long currentVisitedLocations : animalOld.getVisitedLocations()) {
+                visitLocations.add(visitLocationRepository.getReferenceById(currentVisitedLocations));
+            }
+            visitLocations.sort(Comparator.comparing(VisitLocation::getDateTimeOfVisitLocationPoint));
+            if (animal.getChippingLocationId().equals(visitLocations.get(0).getLocationPointId())) {
+                throw new EntityBadRequestException("Новая точка чипирования совпадает с первой посещенной точкой локации");
+            }
+            animal.setVisitedLocations(animalOld.getVisitedLocations());
+        } else animal.setVisitedLocations(animalOld.getVisitedLocations());
+
+        if (animalOld.getLifeStatus().equals(LifeStatus.ALIVE) && animal.getLifeStatus().equals(LifeStatus.DEAD)) {
+            animal.setDeathDateTime(OffsetDateTime.now());
+        }
         animal.setId(animalId);
         animal.setAnimalTypes(animalOld.getAnimalTypes());
         animal.setChippingDateTime(animalOld.getChippingDateTime());
-        animal.setVisitedLocations(animalOld.getVisitedLocations());
-        animal.setDeathDateTime(animalOld.getDeathDateTime());
         return animalRepository.save(animal);
     }
 
     @Override
     public void deleteAnimal(Long animalId) {
-        if (animalId <= 0) {
-            throw new EntityBadRequestException("ID животного должен быть больше 0");
-        }
+        validateAnimalId(animalId);
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
-        if (animal.getVisitedLocations() != null) {
-            if (animal.getVisitedLocations().size() > 0) {
-                throw new EntityBadRequestException("Животное покинуло точку чипирования");
-            }
+        if (animal.getVisitedLocations() != null && animal.getVisitedLocations().size() > 0) {
+            throw new EntityBadRequestException("Животное покинуло точку чипирования");
         }
-
         animalRepository.deleteById(animalId);
     }
 
     @Override
     public Animal addAnimalTypeToAnimal(Long animalId, Long typeId) {
-        if (animalId <= 0 || typeId <= 0) {
-            throw new EntityBadRequestException("ID животного и типа животного должны быть больше 0");
-        }
+        validateAnimalIdAndTypeId(animalId, typeId);
         TypeAnimal typeAnimal = typeAnimalRepository.findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
         List<Long> newList = animal.getAnimalTypes();
+        if (newList != null) {
+            if (newList.contains(typeId)) {
+                throw new DataIntegrityViolationException("Такой тип животного уже есть у животного");
+            }
+        } else {
+            newList = new ArrayList<>();
+        }
         newList.add(typeAnimal.getId());
         animal.setAnimalTypes(newList);
-        return animalRepository.save(animal);
+
+        Animal newAnimal = animalRepository.save(animal);
+        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
+            newAnimal.setVisitedLocations(new ArrayList<>());
+        }
+        return newAnimal;
     }
 
     @Override
-    @Transactional
     public Animal updateAnimalType(Long animalId, TypeDto typeDto) {
-        if (animalId <= 0) {
-            throw new EntityBadRequestException("ID животного и типы животного должны быть больше 0");
-        }
+        validateAnimalId(animalId);
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
-        List<Long> newList = animal.getAnimalTypes();
-        if (!newList.contains(typeDto.getOldTypeId())) {
-            throw new EntityNotFoundException("Не найден старый тип животного для изменения");
-        }
         TypeAnimal oldTypeAnimal = typeAnimalRepository.findById(typeDto.getOldTypeId())
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
-        newList.remove(oldTypeAnimal.getId());
         TypeAnimal newTypeAnimal = typeAnimalRepository.findById(typeDto.getNewTypeId())
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
-        newList.add(newTypeAnimal.getId());
+        List<Long> newList = animal.getAnimalTypes();
+        if (newList != null) {
+            if (!newList.contains(typeDto.getOldTypeId())) {
+                throw new EntityNotFoundException("Не найден старый тип животного для изменения");
+            }
+            newList.remove(oldTypeAnimal.getId());
+            newList.add(newTypeAnimal.getId());
+        } else {
+            throw new EntityNotFoundException("Не найден старый тип животного для изменения");
+        }
         animal.setAnimalTypes(newList);
-        return animalRepository.save(animal);
+        Animal newAnimal = animalRepository.save(animal);
+        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
+            newAnimal.setVisitedLocations(new ArrayList<>());
+        }
+        return newAnimal;
     }
 
     @Override
     public Animal deleteAnimalTypeFromAnimal(Long animalId, Long typeId) {
-        if (animalId <= 0 || typeId <= 0) {
-            throw new EntityBadRequestException("ID животного и типа животного должны быть больше 0");
-        }
+        validateAnimalIdAndTypeId(animalId, typeId);
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
         if (!animal.getAnimalTypes().contains(typeId)) {
@@ -211,12 +218,16 @@ public class AnimalServiceImpl implements AnimalService {
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
         newList.remove(oldTypeAnimal.getId());
         animal.setAnimalTypes(newList);
-        return animalRepository.save(animal);
+        Animal newAnimal = animalRepository.save(animal);
+        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
+            newAnimal.setVisitedLocations(new ArrayList<>());
+        }
+        return newAnimal;
     }
 
     private void validateAnimalTypes(Animal animal) {
-        if(animal.getAnimalTypes().isEmpty() || animal.getAnimalTypes() == null) {
-            throw new EntityBadRequestException("Массив animalTypes не должны быть больше пустым");
+        if (animal.getAnimalTypes().isEmpty() || animal.getAnimalTypes() == null) {
+            throw new EntityBadRequestException("Массив animalTypes не должны быть пустым");
         }
         Set<Long> newSet = new HashSet<>(animal.getAnimalTypes());
         if (newSet.size() != animal.getAnimalTypes().size()) {
@@ -245,6 +256,18 @@ public class AnimalServiceImpl implements AnimalService {
         }
         if (!animal.getLifeStatus().equals(LifeStatus.ALIVE) && !animal.getLifeStatus().equals(LifeStatus.DEAD)) {
             throw new EntityBadRequestException("Неправильно указан жизненный статус животного доступные: ALIVE, DEAD");
+        }
+    }
+
+    private void validateAnimalIdAndTypeId(Long animalId, Long typeId) {
+        if (animalId <= 0 || typeId <= 0) {
+            throw new EntityBadRequestException("ID животного и типа животного должны быть больше 0");
+        }
+    }
+
+    private void validateAnimalId(Long animalId) {
+        if (animalId <= 0) {
+            throw new EntityBadRequestException("ID животного должно быть больше 0");
         }
     }
 }

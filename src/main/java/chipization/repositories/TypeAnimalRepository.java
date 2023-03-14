@@ -1,11 +1,8 @@
 package chipization.repositories;
 
-import chipization.model.Animal;
 import chipization.model.TypeAnimal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
-import java.util.Optional;
 
 public interface TypeAnimalRepository extends JpaRepository<TypeAnimal, Long> {
 

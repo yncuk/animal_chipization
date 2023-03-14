@@ -1,9 +1,10 @@
 package chipization.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.Max;
@@ -15,19 +16,20 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 @ToString
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Location {
     @Id
     @Column(name = "location_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Min(-90)
     @Max(90)
     @NotNull
-    private Double latitude;
+    Double latitude;
 
     @Min(-180)
     @Max(180)
     @NotNull
-    private Double longitude;
+    Double longitude;
 }

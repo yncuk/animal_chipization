@@ -1,14 +1,16 @@
 package chipization.model.dto;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDto {
-
-    private int id;
-    private String firstName;
-    private String lastName;
-    private String email;
+    int id;
+    String firstName;
+    String lastName;
+    String email;
 }

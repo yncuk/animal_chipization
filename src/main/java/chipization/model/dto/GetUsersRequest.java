@@ -1,16 +1,19 @@
 package chipization.model.dto;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class GetUsersRequest {
-    private String firstName;
-    private String lastName;
-    private String email;
-    private int from;
-    private int size;
+    String firstName;
+    String lastName;
+    String email;
+    int from;
+    int size;
 
     public static GetUsersRequest of(String firstName,
                                      String lastName,

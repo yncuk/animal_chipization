@@ -22,8 +22,8 @@ public class GetAnimalsRequest {
     int from;
     int size;
 
-    public static GetAnimalsRequest of(OffsetDateTime startDateTime,
-                                       OffsetDateTime endDateTime,
+    public static GetAnimalsRequest of(String startDateTime,
+                                       String endDateTime,
                                        Integer chipperId,
                                        Long chippingLocationId,
                                        String lifeStatus,
@@ -31,11 +31,12 @@ public class GetAnimalsRequest {
                                        int from,
                                        int size) {
         GetAnimalsRequest request = new GetAnimalsRequest();
+
         if (startDateTime != null) {
-            request.setStartDateTime(startDateTime);
+            request.setStartDateTime(OffsetDateTime.parse(request.parseHTML(startDateTime)));
         }
         if (endDateTime != null) {
-            request.setEndDateTime(endDateTime);
+            request.setEndDateTime(OffsetDateTime.parse(request.parseHTML(endDateTime)));
         }
         if (chipperId != null) {
             request.setChipperId(chipperId);
@@ -76,5 +77,9 @@ public class GetAnimalsRequest {
 
     public boolean hasGender() {
         return gender != null;
+    }
+
+    private String parseHTML(String dateTime) {
+        return dateTime.replace("%ЗА", ":");
     }
 }

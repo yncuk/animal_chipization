@@ -17,9 +17,7 @@ public class TypeAnimalServiceImpl implements TypeAnimalService {
 
     @Override
     public TypeAnimal findById(Long typeId) {
-        if (typeId <= 0) {
-            throw new EntityBadRequestException("ID типа животного не может быть отрицательным");
-        }
+        validateTypeId(typeId);
         return typeAnimalRepository.findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
     }
@@ -31,7 +29,8 @@ public class TypeAnimalServiceImpl implements TypeAnimalService {
 
     @Override
     public TypeAnimal update(Long typeId, TypeAnimal typeAnimal) {
-        TypeAnimal oldTypeAnimal = typeAnimalRepository.findById(typeId)
+        validateTypeId(typeId);
+        typeAnimalRepository.findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного для обновления"));
         typeAnimal.setId(typeId);
         return typeAnimalRepository.save(typeAnimal);
@@ -39,14 +38,18 @@ public class TypeAnimalServiceImpl implements TypeAnimalService {
 
     @Override
     public void delete(Long typeId) {
-        if (typeId <= 0) {
-            throw new EntityBadRequestException("ID типа животного не может быть отрицательным");
-        }
+        validateTypeId(typeId);
         if (typeAnimalRepository.findAnimalWithType(typeId)) {
             throw new EntityBadRequestException("ID типа животного связан с животным и не может быть удален");
         }
         typeAnimalRepository.findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного для удаления"));
         typeAnimalRepository.deleteById(typeId);
+    }
+
+    private void validateTypeId(Long typeId) {
+        if (typeId <= 0) {
+            throw new EntityBadRequestException("ID типа животного не может быть отрицательным");
+        }
     }
 }

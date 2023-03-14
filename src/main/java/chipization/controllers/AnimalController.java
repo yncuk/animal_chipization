@@ -1,12 +1,8 @@
 package chipization.controllers;
 
-import chipization.exceptions.EntityNotAuthorizedException;
 import chipization.model.Animal;
-import chipization.model.TypeAnimal;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
-import chipization.model.enums.AnimalGender;
-import chipization.model.enums.LifeStatus;
 import chipization.services.AccountService;
 import chipization.services.AnimalService;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +12,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 
 @RestController
@@ -31,66 +24,64 @@ public class AnimalController {
     private final AccountService accountService;
 
     @GetMapping("/{animalId}")
-    public ResponseEntity<Animal> findAnimalById(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long animalId) {
-        accountService.checkAuthorization(auth);
+    public ResponseEntity<Animal> findAnimalById(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                 @PathVariable Long animalId) {
+        accountService.checkAuthorizationForGet(auth);
         return ResponseEntity.ok(animalService.findAnimalById(animalId));
     }
 
     @GetMapping("/search")
     public Collection<Animal> search(@RequestHeader(value = "Authorization", required = false) String auth,
-                                     @RequestParam(required = false) OffsetDateTime startDateTime,
-                                     @RequestParam(required = false) OffsetDateTime endDateTime,
+                                     @RequestParam(required = false) String startDateTime,
+                                     @RequestParam(required = false) String endDateTime,
                                      @RequestParam(required = false) Integer chipperId,
                                      @RequestParam(required = false) Long chippingLocationId,
                                      @RequestParam(required = false) String lifeStatus,
                                      @RequestParam(required = false) String gender,
                                      @RequestParam(defaultValue = "0") Integer from,
                                      @RequestParam(defaultValue = "10") Integer size) {
-        accountService.checkAuthorization(auth);
+        accountService.checkAuthorizationForGet(auth);
         return animalService.search(GetAnimalsRequest.of(startDateTime, endDateTime, chipperId, chippingLocationId, lifeStatus, gender, from, size));
     }
 
     @PostMapping
-    public ResponseEntity<Animal> createAnimal(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody Animal animal) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public ResponseEntity<Animal> createAnimal(@RequestHeader(value = "Authorization", required = false) String auth,
+                                               @Valid @RequestBody Animal animal) {
         accountService.checkAuthorization(auth);
         return new ResponseEntity<>(animalService.createAnimal(animal), HttpStatus.CREATED);
     }
 
     @PutMapping("/{animalId}")
-    public ResponseEntity<Animal> updateAnimal(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody Animal animal, @PathVariable Long animalId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public ResponseEntity<Animal> updateAnimal(@RequestHeader(value = "Authorization", required = false) String auth,
+                                               @Valid @RequestBody Animal animal, @PathVariable Long animalId) {
         accountService.checkAuthorization(auth);
         return ResponseEntity.ok(animalService.updateAnimal(animalId, animal));
     }
 
     @DeleteMapping("/{animalId}")
-    public void deleteAnimal(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long animalId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public void deleteAnimal(@RequestHeader(value = "Authorization", required = false) String auth,
+                             @PathVariable Long animalId) {
         accountService.checkAuthorization(auth);
         animalService.deleteAnimal(animalId);
     }
 
     @PostMapping("/{animalId}/types/{typeId}")
-    public ResponseEntity<Animal> addAnimalTypeToAnimal(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long animalId, @PathVariable Long typeId) {
+    public ResponseEntity<Animal> addAnimalTypeToAnimal(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                        @PathVariable Long animalId, @PathVariable Long typeId) {
         accountService.checkAuthorization(auth);
         return new ResponseEntity<>(animalService.addAnimalTypeToAnimal(animalId, typeId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{animalId}/types")
-    public ResponseEntity<Animal> updateAnimalType(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody TypeDto typeDto, @PathVariable Long animalId) {
+    public ResponseEntity<Animal> updateAnimalType(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                   @Valid @RequestBody TypeDto typeDto, @PathVariable Long animalId) {
         accountService.checkAuthorization(auth);
         return ResponseEntity.ok(animalService.updateAnimalType(animalId, typeDto));
     }
 
     @DeleteMapping("/{animalId}/types/{typeId}")
-    public ResponseEntity<Animal> deleteAnimalTypeFromAnimal(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long animalId, @PathVariable Long typeId) {
+    public ResponseEntity<Animal> deleteAnimalTypeFromAnimal(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                             @PathVariable Long animalId, @PathVariable Long typeId) {
         accountService.checkAuthorization(auth);
         return ResponseEntity.ok(animalService.deleteAnimalTypeFromAnimal(animalId, typeId));
     }

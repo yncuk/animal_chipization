@@ -1,11 +1,14 @@
 package chipization.model.dto;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class TypeAnimalDto {
-    private Long id;
-    private String type;
+    Long id;
+    String type;
 }

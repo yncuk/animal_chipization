@@ -7,7 +7,6 @@ import chipization.model.dto.TypeDto;
 import java.util.Collection;
 
 public interface AnimalService {
-
     Animal findAnimalById(Long animalId);
 
     Collection<Animal> search(GetAnimalsRequest getAnimalsRequest);

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
-    public static UserDto toUsetDto(User user) {
+    public static UserDto toUserDto(User user) {
         return new UserDto(
                 user.getId(),
                 user.getFirstName(),
@@ -18,16 +18,7 @@ public class UserMapper {
         );
     }
 
-    public static User toUser(UserDto userDto) {
-        User user = new User();
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        return user;
-    }
-
     public static Collection<UserDto> allToUserDto(Collection<User> users) {
-        return users.stream().map(UserMapper::toUsetDto).collect(Collectors.toList());
+        return users.stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
-
 }

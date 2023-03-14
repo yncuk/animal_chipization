@@ -1,8 +1,10 @@
 package chipization.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -14,28 +16,29 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 @ToString
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    int id;
 
     @NotBlank
     @NotNull
     @Column(name = "first_name")
-    private String firstName;
+    String firstName;
 
     @NotBlank
     @NotNull
     @Column(name = "last_name")
-    private String lastName;
+    String lastName;
 
     @Email
     @NotBlank
     @NotNull
-    private String email;
+    String email;
 
     @NotBlank
     @NotNull
-    private String password;
+    String password;
 }

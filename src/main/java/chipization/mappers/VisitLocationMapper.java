@@ -1,8 +1,6 @@
 package chipization.mappers;
 
-import chipization.model.User;
 import chipization.model.VisitLocation;
-import chipization.model.dto.UserDto;
 import chipization.model.dto.VisitLocationResponse;
 import org.springframework.stereotype.Component;
 

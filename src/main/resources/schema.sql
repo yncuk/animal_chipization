@@ -26,23 +26,23 @@ create table if not exists animals
     weight               double precision not null,
     length               double precision not null,
     height               double precision not null,
-    gender               varchar not null,
+    gender               varchar          not null,
     life_status          varchar,
-    chipping_date_time   timestamp,
-    chipper_id           integer not null
+    chipping_date_time   timestamp with time zone,
+    chipper_id           integer          not null
         constraint animals_users_user_id_fk
             references users,
-    chipping_location_id bigint not null
+    chipping_location_id bigint           not null
         constraint animals_locations_location_id_fk
             references locations,
-    death_date_time      timestamp
+    death_date_time      timestamp with time zone
 );
 create table if not exists type_animal
 (
-    type_id   bigserial
+    type_id bigserial
         primary key
         unique,
-    type      varchar not null
+    type    varchar not null
         unique
 );
 create table if not exists animals_type_animal
@@ -60,10 +60,10 @@ create table if not exists animals_type_animal
 );
 create table if not exists visit_locations
 (
-    visit_location_id      bigserial
+    visit_location_id                 bigserial
         primary key
         unique,
-    date_time_of_visit_location_point timestamp,
+    date_time_of_visit_location_point timestamp with time zone,
     location_point_id                 bigint
         constraint visit_location_locations_location_id_fk
             references locations
@@ -74,11 +74,9 @@ create table if not exists animals_visit_locations
     animal_id   bigint not null
         constraint animals_locations_animals_animal_id_fk
             references animals
-            on delete restrict,
+            on delete cascade,
     location_id bigint not null
         constraint animals_visit_locations_visit_locations_visit_location_id_fk
-            references locations
-            on delete restrict,
-    constraint animals_locations_pk
-        primary key (animal_id, location_id)
+            references visit_locations
+            on delete cascade
 );

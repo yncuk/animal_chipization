@@ -21,7 +21,8 @@ public class RegistrationController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> registrationUser(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody User user) {
+    public ResponseEntity<UserDto> registrationUser(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                    @Valid @RequestBody User user) {
         if (userService.isAuthorized(auth)) {
             throw new EntityForbiddenException("Пользователь уже авторизован");
         }

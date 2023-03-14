@@ -9,7 +9,6 @@ import java.util.Collection;
 
 @Service
 public interface AccountService {
-
     UserDto findById(Integer accountId);
 
     Collection<UserDto> search(GetUsersRequest request);
@@ -18,6 +17,7 @@ public interface AccountService {
 
     void delete(String auth, Integer accountId);
 
-    void checkAuthorization(String auth);
+    void checkAuthorizationForGet(String auth);
 
+    void checkAuthorization(String auth);
 }

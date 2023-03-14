@@ -1,6 +1,5 @@
 package chipization.model;
 
-
 import chipization.model.enums.AnimalGender;
 import chipization.model.enums.LifeStatus;
 import lombok.AccessLevel;
@@ -77,5 +76,4 @@ public class Animal implements Serializable {
 
     @Column(name = "death_date_time")
     OffsetDateTime deathDateTime;
-
 }

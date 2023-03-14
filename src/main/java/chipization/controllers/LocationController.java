@@ -1,6 +1,5 @@
 package chipization.controllers;
 
-import chipization.exceptions.EntityNotAuthorizedException;
 import chipization.model.Location;
 import chipization.services.AccountService;
 import chipization.services.LocationService;
@@ -23,34 +22,29 @@ public class LocationController {
 
 
     @GetMapping("/{pointId}")
-    public ResponseEntity<Location> findById(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long pointId) {
-        accountService.checkAuthorization(auth);
+    public ResponseEntity<Location> findById(@RequestHeader(value = "Authorization", required = false) String auth,
+                                             @PathVariable Long pointId) {
+        accountService.checkAuthorizationForGet(auth);
         return ResponseEntity.ok(locationService.findById(pointId));
     }
 
     @PostMapping
-    public ResponseEntity<Location> create(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody Location location) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public ResponseEntity<Location> create(@RequestHeader(value = "Authorization", required = false) String auth,
+                                           @Valid @RequestBody Location location) {
         accountService.checkAuthorization(auth);
         return new ResponseEntity<>(locationService.create(location), HttpStatus.CREATED);
     }
 
     @PutMapping("/{pointId}")
-    public ResponseEntity<Location> update(@RequestHeader(value = "Authorization", required = false) String auth, @Valid @RequestBody Location location, @PathVariable Long pointId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public ResponseEntity<Location> update(@RequestHeader(value = "Authorization", required = false) String auth,
+                                           @Valid @RequestBody Location location, @PathVariable Long pointId) {
         accountService.checkAuthorization(auth);
         return ResponseEntity.ok(locationService.update(pointId, location));
     }
 
     @DeleteMapping("/{pointId}")
-    public void delete(@RequestHeader(value = "Authorization", required = false) String auth, @PathVariable Long pointId) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
+    public void delete(@RequestHeader(value = "Authorization", required = false) String auth,
+                       @PathVariable Long pointId) {
         accountService.checkAuthorization(auth);
         locationService.delete(pointId);
     }
