@@ -7,9 +7,6 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "locations")
@@ -23,13 +20,10 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Min(-90)
-    @Max(90)
-    @NotNull
     Double latitude;
 
-    @Min(-180)
-    @Max(180)
-    @NotNull
     Double longitude;
+
+    @Column(name = "area_id")
+    Long areaId;
 }

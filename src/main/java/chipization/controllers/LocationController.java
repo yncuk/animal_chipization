@@ -1,7 +1,9 @@
 package chipization.controllers;
 
 import chipization.model.Location;
-import chipization.services.AccountService;
+import chipization.model.dto.LocationDto;
+import chipization.model.dto.LocationDtoResponse;
+import chipization.services.AuthorizationService;
 import chipization.services.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,34 +20,35 @@ import javax.validation.Valid;
 public class LocationController {
 
     private final LocationService locationService;
-    private final AccountService accountService;
+
+    private final AuthorizationService authorizationService;
 
 
     @GetMapping("/{pointId}")
-    public ResponseEntity<Location> findById(@RequestHeader(value = "Authorization", required = false) String auth,
-                                             @PathVariable Long pointId) {
-        accountService.checkAuthorizationForGet(auth);
+    public ResponseEntity<LocationDtoResponse> findById(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                        @PathVariable Long pointId) {
+        authorizationService.checkAuthorization(auth);
         return ResponseEntity.ok(locationService.findById(pointId));
     }
 
     @PostMapping
-    public ResponseEntity<Location> create(@RequestHeader(value = "Authorization", required = false) String auth,
-                                           @Valid @RequestBody Location location) {
-        accountService.checkAuthorization(auth);
-        return new ResponseEntity<>(locationService.create(location), HttpStatus.CREATED);
+    public ResponseEntity<LocationDtoResponse> create(@RequestHeader(value = "Authorization", required = false) String auth,
+                                                      @Valid @RequestBody LocationDto locationDto) {
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
+        return new ResponseEntity<>(locationService.create(locationDto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{pointId}")
-    public ResponseEntity<Location> update(@RequestHeader(value = "Authorization", required = false) String auth,
-                                           @Valid @RequestBody Location location, @PathVariable Long pointId) {
-        accountService.checkAuthorization(auth);
-        return ResponseEntity.ok(locationService.update(pointId, location));
+    public ResponseEntity<LocationDtoResponse> update(@RequestHeader(value = "Authorization", required = false) String auth,
+                                           @Valid @RequestBody LocationDto locationDto, @PathVariable Long pointId) {
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
+        return ResponseEntity.ok(locationService.update(pointId, locationDto));
     }
 
     @DeleteMapping("/{pointId}")
     public void delete(@RequestHeader(value = "Authorization", required = false) String auth,
                        @PathVariable Long pointId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminRights(auth);
         locationService.delete(pointId);
     }
 }

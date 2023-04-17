@@ -1,13 +1,14 @@
 package chipization.services;
 
-import chipization.model.Location;
+import chipization.model.dto.LocationDto;
+import chipization.model.dto.LocationDtoResponse;
 
 public interface LocationService {
-    Location findById(Long locationId);
+    LocationDtoResponse findById(Long locationId);
 
-    Location create(Location location);
+    LocationDtoResponse create(LocationDto locationDto);
 
-    Location update(Long pointId, Location location);
+    LocationDtoResponse update(Long pointId, LocationDto locationDto);
 
     void delete(Long pointId);
 }

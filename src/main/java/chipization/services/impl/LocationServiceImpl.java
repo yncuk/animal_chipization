@@ -1,7 +1,10 @@
 package chipization.services.impl;
 
 import chipization.exceptions.EntityBadRequestException;
+import chipization.mappers.LocationMapper;
 import chipization.model.Location;
+import chipization.model.dto.LocationDto;
+import chipization.model.dto.LocationDtoResponse;
 import chipization.repositories.AnimalRepository;
 import chipization.repositories.LocationRepository;
 import chipization.services.LocationService;
@@ -19,30 +22,31 @@ public class LocationServiceImpl implements LocationService {
     private final AnimalRepository animalRepository;
 
     @Override
-    public Location findById(Long locationId) {
+    public LocationDtoResponse findById(Long locationId) {
         validatePointId(locationId);
-        return locationRepository.findById(locationId)
-                .orElseThrow(() -> new EntityNotFoundException("Не найдена локация"));
+        return LocationMapper.toLocationDtoResponse(locationRepository.findById(locationId)
+                .orElseThrow(() -> new EntityNotFoundException("Не найдена локация")));
     }
 
     @Override
-    public Location create(Location location) {
-        if (locationRepository.findByLatitudeAndLongitude(location.getLatitude(), location.getLongitude()).isPresent()) {
+    public LocationDtoResponse create(LocationDto locationDto) {
+        if (locationRepository.findByLatitudeAndLongitude(locationDto.getLatitude(), locationDto.getLongitude()).isPresent()) {
             throw new DataIntegrityViolationException("Точка локации с такими latitude и longitude уже существует");
         }
-        return locationRepository.save(location);
+        return LocationMapper.toLocationDtoResponse(locationRepository.save(LocationMapper.toLocationFromLocationDto(locationDto)));
     }
 
     @Override
-    public Location update(Long pointId, Location location) {
+    public LocationDtoResponse update(Long pointId, LocationDto locationDto) {
         validatePointId(pointId);
         locationRepository.findById(pointId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдена точка локации"));
-        if (locationRepository.findByLatitudeAndLongitude(location.getLatitude(), location.getLongitude()).isPresent()) {
+        if (locationRepository.findByLatitudeAndLongitude(locationDto.getLatitude(), locationDto.getLongitude()).isPresent()) {
             throw new DataIntegrityViolationException("Точка локации с такими latitude и longitude уже существует");
         }
-        location.setId(pointId);
-        return locationRepository.save(location);
+        Location newLocation = LocationMapper.toLocationFromLocationDto(locationDto);
+        newLocation.setId(pointId);
+        return LocationMapper.toLocationDtoResponse(locationRepository.save(newLocation));
     }
 
     @Override

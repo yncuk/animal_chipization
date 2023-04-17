@@ -27,7 +27,7 @@ services:
 
   # Сервис для разворачивания контейнера с автотестами
   tests:
-    image: mrexpen/planet_olymp_phase1:latest
+    image: mrexpen/planet_olymp_phase2:latest
     pull_policy: always
     ports:
       - "8090:8080"

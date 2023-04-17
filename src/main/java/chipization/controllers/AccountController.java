@@ -4,7 +4,9 @@ import chipization.model.User;
 import chipization.model.dto.GetUsersRequest;
 import chipization.model.dto.UserDto;
 import chipization.services.AccountService;
+import chipization.services.AuthorizationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +21,12 @@ import java.util.Collection;
 public class AccountController {
 
     private final AccountService accountService;
+    private final AuthorizationService authorizationService;
 
     @GetMapping("/{accountId}")
     public ResponseEntity<UserDto> findById(@RequestHeader(value = "Authorization", required = false) String auth,
                                             @PathVariable Integer accountId) {
-        accountService.checkAuthorizationForGet(auth);
+        authorizationService.checkAuthorizationForUserWithoutAdminRights(auth, accountId);
         return ResponseEntity.ok(accountService.findById(accountId));
     }
 
@@ -34,21 +37,28 @@ public class AccountController {
                                                       @RequestParam(required = false) String email,
                                                       @RequestParam(defaultValue = "0") Integer from,
                                                       @RequestParam(defaultValue = "10") Integer size) {
-        accountService.checkAuthorizationForGet(auth);
+        authorizationService.checkAuthorizationForAdminRights(auth);
         return ResponseEntity.ok(accountService.search(GetUsersRequest.of(firstName, lastName, email, from, size)));
+    }
+
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(@RequestHeader(value = "Authorization", required = false) String auth,
+                                              @Valid @RequestBody User user) {
+        authorizationService.checkAuthorization(auth);
+        return new ResponseEntity<>(accountService.createUser(user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{accountId}")
     public ResponseEntity<UserDto> update(@RequestHeader(value = "Authorization", required = false) String auth,
                                           @RequestBody @Valid User user, @PathVariable Integer accountId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForUserWithoutAdminRights(auth, accountId);
         return ResponseEntity.ok(accountService.update(auth, accountId, user));
     }
 
     @DeleteMapping("/{accountId}")
     public void delete(@RequestHeader(value = "Authorization", required = false) String auth,
                        @PathVariable Integer accountId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForUserWithoutAdminRights(auth, accountId);
         accountService.delete(auth, accountId);
     }
 }

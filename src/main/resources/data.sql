@@ -10,3 +10,5 @@ delete from users;
 AlTER SEQUENCE users_user_id_seq RESTART with 1;
 delete from locations;
 AlTER SEQUENCE locations_location_id_seq RESTART with 1;
+delete from areas;
+AlTER SEQUENCE areas_area_id_seq RESTART with 1;

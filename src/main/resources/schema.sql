@@ -7,7 +7,16 @@ create table if not exists users
     last_name  varchar not null,
     email      varchar not null
         unique,
-    password   varchar not null
+    password   varchar not null,
+    role       varchar not null
+);
+create table if not exists areas
+(
+    area_id bigserial
+        primary key
+        unique,
+    name varchar not null
+        unique
 );
 create table if not exists locations
 (
@@ -15,7 +24,11 @@ create table if not exists locations
         primary key
         unique,
     latitude    double precision not null,
-    longitude   double precision not null
+    longitude   double precision not null,
+    area_id     bigint
+        constraint locations_areas_area_id_fk
+            references areas
+            on delete cascade
 );
 create table if not exists animals
 (

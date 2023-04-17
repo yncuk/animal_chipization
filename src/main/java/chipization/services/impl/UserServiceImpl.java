@@ -3,6 +3,7 @@ package chipization.services.impl;
 import chipization.mappers.UserMapper;
 import chipization.model.User;
 import chipization.model.dto.UserDto;
+import chipization.model.enums.UserRole;
 import chipization.repositories.UserRepository;
 import chipization.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto registrationUser(User user) {
+        user.setRole(UserRole.USER);
         return UserMapper.toUserDto(userRepository.save(user));
     }
 

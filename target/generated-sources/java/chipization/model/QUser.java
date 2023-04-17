@@ -29,6 +29,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath password = createString("password");
 
+    public final EnumPath<chipization.model.enums.UserRole> role = createEnum("role", chipization.model.enums.UserRole.class);
+
     public QUser(String variable) {
         super(User.class, forVariable(variable));
     }

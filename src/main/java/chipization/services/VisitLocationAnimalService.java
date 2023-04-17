@@ -9,8 +9,8 @@ import java.util.Collection;
 
 public interface VisitLocationAnimalService {
     Collection<VisitLocationResponse> findAllVisitLocations(Long animalId,
-                                                            OffsetDateTime startDateTime,
-                                                            OffsetDateTime endDateTime,
+                                                            String startDateTime,
+                                                            String endDateTime,
                                                             int from,
                                                             int size);
 

@@ -27,7 +27,7 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
     private final LocationRepository locationRepository;
 
     @Override
-    public Collection<VisitLocationResponse> findAllVisitLocations(Long animalId, OffsetDateTime startDateTime, OffsetDateTime endDateTime, int from, int size) {
+    public Collection<VisitLocationResponse> findAllVisitLocations(Long animalId, String startDateTime, String endDateTime, int from, int size) {
         validateAnimalId(animalId);
         if (size <= 0 || from < 0) {
             throw new EntityBadRequestException("Количество пропущенных элементов и страниц не должно быть меньше 0");
@@ -38,12 +38,12 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
             return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutStartAndEndTime(animalId, size, from));
         }
         if (startDateTime == null) {
-            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutStartTime(animalId, endDateTime, size, from));
+            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutStartTime(animalId, parseHTML(endDateTime), size, from));
         }
         if (endDateTime == null) {
-            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutEndTime(animalId, startDateTime, size, from));
+            return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocationsWithoutEndTime(animalId, parseHTML(startDateTime), size, from));
         }
-        return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocations(animalId, startDateTime, endDateTime, size, from));
+        return VisitLocationMapper.allToVisitLocationResponse(visitLocationRepository.findAllVisitLocations(animalId, parseHTML(startDateTime), parseHTML(endDateTime), size, from));
     }
 
     @Override
@@ -128,10 +128,12 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
         List<Long> visitedLocations = animal.getVisitedLocations();
         VisitLocation firstVisitLocation = visitLocationRepository.findFirstVisitedLocation(animalId);
         VisitLocation secondVisitLocation = visitLocationRepository.findSecondVisitedLocation(animalId);
-        if (firstVisitLocation.getId().equals(visitedPointId)
-                && secondVisitLocation.getLocationPointId().equals(animal.getChippingLocationId())) {
-            visitedLocations.remove(secondVisitLocation.getId());
-            visitLocationRepository.deleteById(secondVisitLocation.getId());
+        if (firstVisitLocation != null && secondVisitLocation != null) {
+            if (firstVisitLocation.getId().equals(visitedPointId)
+                    && secondVisitLocation.getLocationPointId().equals(animal.getChippingLocationId())) {
+                visitedLocations.remove(secondVisitLocation.getId());
+                visitLocationRepository.deleteById(secondVisitLocation.getId());
+            }
         }
         visitedLocations.remove(visitedPointId);
         animal.setVisitedLocations(visitedLocations);
@@ -149,5 +151,11 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
         if (animalId <= 0) {
             throw new EntityBadRequestException("ID животного должно быть больше 0");
         }
+    }
+
+    private OffsetDateTime parseHTML(String dateTime) {
+        if (dateTime != null) {
+            return OffsetDateTime.parse(dateTime.replace("%ЗА", ":"));
+        } else return null;
     }
 }

@@ -3,7 +3,7 @@ package chipization.controllers;
 import chipization.model.VisitLocation;
 import chipization.model.dto.VisitLocationDto;
 import chipization.model.dto.VisitLocationResponse;
-import chipization.services.AccountService;
+import chipization.services.AuthorizationService;
 import chipization.services.VisitLocationAnimalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,37 +21,38 @@ import java.util.Collection;
 @Validated
 public class VisitLocationAnimalController {
     private final VisitLocationAnimalService visitLocationAnimalService;
-    private final AccountService accountService;
+    private final AuthorizationService authorizationService;
+
 
     @GetMapping("/{animalId}/locations")
     public ResponseEntity<Collection<VisitLocationResponse>> search(@RequestHeader(value = "Authorization", required = false) String auth,
                                                                     @PathVariable Long animalId,
-                                                                    @RequestParam(required = false) OffsetDateTime startDateTime,
-                                                                    @RequestParam(required = false) OffsetDateTime endDateTime,
+                                                                    @RequestParam(required = false) String startDateTime,
+                                                                    @RequestParam(required = false) String endDateTime,
                                                                     @RequestParam(defaultValue = "0") Integer from,
                                                                     @RequestParam(defaultValue = "10") Integer size) {
-        accountService.checkAuthorizationForGet(auth);
+        authorizationService.checkAuthorization(auth);
         return ResponseEntity.ok(visitLocationAnimalService.findAllVisitLocations(animalId, startDateTime, endDateTime, from, size));
     }
 
     @PostMapping("/{animalId}/locations/{pointId}")
     public ResponseEntity<VisitLocation> addVisitLocation(@RequestHeader(value = "Authorization", required = false) String auth,
                                                           @PathVariable Long animalId, @PathVariable Long pointId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
         return new ResponseEntity<>(visitLocationAnimalService.addVisitLocation(animalId, pointId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{animalId}/locations")
     public ResponseEntity<VisitLocationResponse> updateVisitLocation(@RequestHeader(value = "Authorization", required = false) String auth,
                                                                      @Valid @RequestBody VisitLocationDto visitLocationDto, @PathVariable Long animalId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
         return ResponseEntity.ok(visitLocationAnimalService.updateVisitLocation(animalId, visitLocationDto));
     }
 
     @DeleteMapping("/{animalId}/locations/{visitedPointId}")
     public void deleteVisitLocation(@RequestHeader(value = "Authorization", required = false) String auth,
                                     @PathVariable Long animalId, @PathVariable Long visitedPointId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminRights(auth);
         visitLocationAnimalService.deleteVisitLocation(animalId, visitedPointId);
     }
 }

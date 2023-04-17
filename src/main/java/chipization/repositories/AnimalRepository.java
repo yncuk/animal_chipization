@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface AnimalRepository extends JpaRepository<Animal, Long>, QuerydslPredicateExecutor<Animal> {
 
-    Optional<Animal> findByChipperId(Integer id);
+    List<Animal> findByChipperId(Integer id);
 
     @Query(value = " select a.*, avl.location_id, vl.*, l.location_id from animals a " +
             "left join animals_visit_locations as avl on a.animal_id = avl.animal_id " +

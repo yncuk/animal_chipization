@@ -3,7 +3,7 @@ package chipization.controllers;
 import chipization.mappers.TypeAnimalMapper;
 import chipization.model.TypeAnimal;
 import chipization.model.dto.TypeAnimalDto;
-import chipization.services.AccountService;
+import chipization.services.AuthorizationService;
 import chipization.services.TypeAnimalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,33 +20,34 @@ import javax.validation.Valid;
 public class TypeAnimalController {
 
     private final TypeAnimalService typeAnimalService;
-    private final AccountService accountService;
+    private final AuthorizationService authorizationService;
+
 
     @GetMapping("/{typeId}")
     public ResponseEntity<TypeAnimalDto> findById(@RequestHeader(value = "Authorization", required = false) String auth,
                                                   @PathVariable Long typeId) {
-        accountService.checkAuthorizationForGet(auth);
+        authorizationService.checkAuthorization(auth);
         return ResponseEntity.ok(TypeAnimalMapper.toTypeAnimalDto(typeAnimalService.findById(typeId)));
     }
 
     @PostMapping
     public ResponseEntity<TypeAnimalDto> create(@RequestHeader(value = "Authorization", required = false) String auth,
                                                 @Valid @RequestBody TypeAnimal typeAnimal) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
         return new ResponseEntity<>(TypeAnimalMapper.toTypeAnimalDto(typeAnimalService.create(typeAnimal)), HttpStatus.CREATED);
     }
 
     @PutMapping("/{typeId}")
     public ResponseEntity<TypeAnimalDto> update(@RequestHeader(value = "Authorization", required = false) String auth,
                                                 @Valid @RequestBody TypeAnimal typeAnimal, @PathVariable Long typeId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminOrChipperRights(auth);
         return ResponseEntity.ok(TypeAnimalMapper.toTypeAnimalDto(typeAnimalService.update(typeId, typeAnimal)));
     }
 
     @DeleteMapping("/{typeId}")
     public void delete(@RequestHeader(value = "Authorization", required = false) String auth,
                        @PathVariable Long typeId) {
-        accountService.checkAuthorization(auth);
+        authorizationService.checkAuthorizationForAdminRights(auth);
         typeAnimalService.delete(typeId);
     }
 }

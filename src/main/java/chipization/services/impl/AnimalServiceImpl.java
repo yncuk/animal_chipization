@@ -1,7 +1,9 @@
 package chipization.services.impl;
 
 import chipization.exceptions.EntityBadRequestException;
+import chipization.mappers.AnimalMapper;
 import chipization.model.*;
+import chipization.model.dto.AnimalDto;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
 import chipization.model.enums.AnimalGender;
@@ -31,12 +33,8 @@ public class AnimalServiceImpl implements AnimalService {
     @Override
     public Animal findAnimalById(Long animalId) {
         validateAnimalId(animalId);
-        Animal animal = animalRepository.findById(animalId)
+        return animalRepository.findById(animalId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
-        if (animal.getVisitedLocations().isEmpty()) {
-            animal.setVisitedLocations(null);
-        }
-        return animal;
     }
 
     @Override
@@ -100,6 +98,9 @@ public class AnimalServiceImpl implements AnimalService {
         visitLocation.setLocationPointId(animal.getChippingLocationId());
         visitLocation.setDateTimeOfVisitLocationPoint(animal.getChippingDateTime());
         visitLocationRepository.save(visitLocation);
+        if (animal.getVisitedLocations() == null) {
+            animal.setVisitedLocations(List.of());
+        }
         return animalRepository.save(animal);
     }
 
@@ -169,8 +170,8 @@ public class AnimalServiceImpl implements AnimalService {
         animal.setAnimalTypes(newList);
 
         Animal newAnimal = animalRepository.save(animal);
-        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
-            newAnimal.setVisitedLocations(new ArrayList<>());
+        if (newAnimal.getVisitedLocations() == null) {
+            newAnimal.setVisitedLocations(List.of());
         }
         return newAnimal;
     }
@@ -196,8 +197,8 @@ public class AnimalServiceImpl implements AnimalService {
         }
         animal.setAnimalTypes(newList);
         Animal newAnimal = animalRepository.save(animal);
-        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
-            newAnimal.setVisitedLocations(new ArrayList<>());
+        if (newAnimal.getVisitedLocations() == null) {
+            newAnimal.setVisitedLocations(List.of());
         }
         return newAnimal;
     }
@@ -218,9 +219,12 @@ public class AnimalServiceImpl implements AnimalService {
                 .orElseThrow(() -> new EntityNotFoundException("Не найден тип животного"));
         newList.remove(oldTypeAnimal.getId());
         animal.setAnimalTypes(newList);
-        Animal newAnimal = animalRepository.save(animal);
-        if (newAnimal.getVisitedLocations() == null || newAnimal.getVisitedLocations().isEmpty()) {
-            newAnimal.setVisitedLocations(new ArrayList<>());
+        animalRepository.save(animal);
+
+        Animal newAnimal = animalRepository.findById(animalId)
+                .orElseThrow(() -> new EntityNotFoundException("Не найдено животное"));
+        if (newAnimal.getVisitedLocations() == null) {
+            newAnimal.setVisitedLocations(List.of());
         }
         return newAnimal;
     }

@@ -1,5 +1,6 @@
 package chipization.model;
 
+import chipization.model.enums.UserRole;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,4 +42,7 @@ public class User {
     @NotBlank
     @NotNull
     String password;
+
+    @Enumerated(EnumType.STRING)
+    UserRole role;
 }

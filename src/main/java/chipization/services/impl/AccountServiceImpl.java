@@ -2,11 +2,11 @@ package chipization.services.impl;
 
 import chipization.exceptions.EntityBadRequestException;
 import chipization.exceptions.EntityForbiddenException;
-import chipization.exceptions.EntityNotAuthorizedException;
 import chipization.mappers.UserMapper;
 import chipization.model.User;
 import chipization.model.dto.GetUsersRequest;
 import chipization.model.dto.UserDto;
+import chipization.model.enums.UserRole;
 import chipization.repositories.AnimalRepository;
 import chipization.repositories.UserRepository;
 import chipization.services.AccountService;
@@ -25,30 +25,6 @@ public class AccountServiceImpl implements AccountService {
     private final AnimalRepository animalRepository;
 
     @Override
-    public void checkAuthorization(String auth) {
-        if (auth == null) {
-            throw new EntityNotAuthorizedException("Анонимный пользователь, запрос недоступен");
-        }
-        userRepository.authorization(getLogin(auth), getPassword(auth))
-                .orElseThrow(() -> new EntityNotAuthorizedException("Пользователь с таким логином и паролем не найден"));
-    }
-
-    @Override
-    public void checkAuthorizationForGet(String auth) {
-        if (auth != null) {
-            auth = auth.substring(auth.indexOf(' ') + 1);
-        } else return;
-
-        byte[] decodedBytes = Base64.getDecoder().decode(auth);
-        String result = new String(decodedBytes);
-        String[] res = result.split(":");
-        String login = res[0];
-        String password = res[1];
-        userRepository.authorization(login, password)
-                .orElseThrow(() -> new EntityNotAuthorizedException("Пользователь с таким логином и паролем не найден"));
-    }
-
-    @Override
     public UserDto findById(Integer accountId) {
         validateAccountId(accountId);
         return UserMapper.toUserDto(userRepository.findById(accountId).
@@ -64,12 +40,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public UserDto createUser(User user) {
+        return UserMapper.toUserDto(userRepository.save(user));
+    }
+
+    @Override
     public UserDto update(String auth, Integer accountId, User user) {
         userRepository.findById(accountId)
-                .orElseThrow(() -> new EntityForbiddenException("Не найден пользователь"));
+                .orElseThrow(() -> new EntityNotFoundException("Не найден пользователь"));
         if (userRepository.authorization(getLogin(auth), getPassword(auth)).isPresent()) {
-            Integer id = userRepository.authorization(getLogin(auth), getPassword(auth)).get().getId();
-            if (!id.equals(accountId)) {
+            User updatingUser = userRepository.authorization(getLogin(auth), getPassword(auth)).get();
+            if (updatingUser.getId() != accountId && (updatingUser.getRole() == UserRole.USER
+                    ||  updatingUser.getRole() == UserRole.CHIPPER)) {
                 throw new EntityForbiddenException("Нельзя обновлять не свой аккаунт");
             }
         }
@@ -80,15 +62,15 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void delete(String auth, Integer accountId) {
         validateAccountId(accountId);
-        if (animalRepository.findByChipperId(accountId).isPresent()) {
+        if (!animalRepository.findByChipperId(accountId).isEmpty()) {
             throw new EntityBadRequestException("Аккаунт связан с животным");
         }
         userRepository.findById(accountId)
-                .orElseThrow(() -> new EntityForbiddenException("Не найден пользователь"));
-
+                .orElseThrow(() -> new EntityNotFoundException("Не найден пользователь"));
         if (userRepository.authorization(getLogin(auth), getPassword(auth)).isPresent()) {
-            Integer id = userRepository.authorization(getLogin(auth), getPassword(auth)).get().getId();
-            if (!id.equals(accountId)) {
+            User user = userRepository.authorization(getLogin(auth), getPassword(auth)).get();
+            if (user.getId() != accountId && (user.getRole() == UserRole.USER
+                    ||  user.getRole() == UserRole.CHIPPER)) {
                 throw new EntityForbiddenException("Нельзя удалить не свой аккаунт");
             }
         }

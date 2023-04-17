@@ -13,11 +13,9 @@ public interface AccountService {
 
     Collection<UserDto> search(GetUsersRequest request);
 
+    UserDto createUser(User user);
+
     UserDto update(String auth, Integer accountId, User user);
 
     void delete(String auth, Integer accountId);
-
-    void checkAuthorizationForGet(String auth);
-
-    void checkAuthorization(String auth);
 }

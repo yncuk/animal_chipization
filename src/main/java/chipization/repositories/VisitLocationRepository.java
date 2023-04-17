@@ -22,7 +22,7 @@ public interface VisitLocationRepository extends JpaRepository<VisitLocation, Lo
     @Query(value = " select * from visit_locations vl " +
             "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
             "where animal_id = ?1 and " +
-            "date_time_of_visit_location_point < ?2 " +
+            "date_time_of_visit_location_point <= ?2 " +
             "order by date_time_of_visit_location_point " +
             "limit ?3 offset ?4", nativeQuery = true)
     Collection<VisitLocation> findAllVisitLocationsWithoutStartTime(Long animalId, OffsetDateTime endDateTime, int size, int from);
@@ -30,7 +30,7 @@ public interface VisitLocationRepository extends JpaRepository<VisitLocation, Lo
     @Query(value = " select * from visit_locations vl " +
             "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
             "where animal_id = ?1 and " +
-            "date_time_of_visit_location_point > ?2 " +
+            "date_time_of_visit_location_point >= ?2 " +
             "order by date_time_of_visit_location_point " +
             "limit ?3 offset ?4", nativeQuery = true)
     Collection<VisitLocation> findAllVisitLocationsWithoutEndTime(Long animalId, OffsetDateTime startDateTime, int size, int from);
