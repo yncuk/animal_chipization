@@ -1,7 +1,6 @@
 package chipization.controllers;
 
 import chipization.model.Animal;
-import chipization.model.dto.AnimalDto;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
 import chipization.services.AnimalService;

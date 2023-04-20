@@ -23,7 +23,4 @@ public class Location {
     Double latitude;
 
     Double longitude;
-
-    @Column(name = "area_id")
-    Long areaId;
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface VisitLocationRepository extends JpaRepository<VisitLocation, Long> {
 
@@ -42,7 +43,6 @@ public interface VisitLocationRepository extends JpaRepository<VisitLocation, Lo
             "limit ?2 offset ?3", nativeQuery = true)
     Collection<VisitLocation> findAllVisitLocationsWithoutStartAndEndTime(Long animalId, int size, int from);
 
-
     @Query(value = "select * from visit_locations as vl " +
             "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
             "where animal_id = ?1 " +
@@ -66,4 +66,45 @@ public interface VisitLocationRepository extends JpaRepository<VisitLocation, Lo
             "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
             "where animal_id = ?1 and vl.location_point_id = ?2)", nativeQuery = true)
     Boolean isExpectedEarlier(Long animalId, Long locationPointId);
+
+    @Query(value = " select vl.* from visit_locations as vl " +
+            "where vl.date_time_of_visit_location_point >= ?1 and " +
+            "vl.date_time_of_visit_location_point <= ?2", nativeQuery = true)
+    List<VisitLocation> getAllPoints(OffsetDateTime start, OffsetDateTime end);
+
+    @Query(value = "select vl.* from visit_locations as vl " +
+            "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
+            "where avl.animal_id = ?1 and " +
+            "vl.date_time_of_visit_location_point < ?2 " +
+            "order by vl.date_time_of_visit_location_point desc " +
+            "limit 1 offset 0", nativeQuery = true)
+    Optional<VisitLocation> findPreviousVisitedLocation(Long animalId, OffsetDateTime visitTime);
+
+    @Query(value = "select vl.* from visit_locations as vl " +
+            "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
+            "left join locations as l on vl.location_point_id = l.location_id " +
+            "left join animals a on avl.animal_id = a.animal_id " +
+            "where a.animal_id = ?1 and " +
+            "vl.date_time_of_visit_location_point < ?2 " +
+            "order by vl.date_time_of_visit_location_point desc " +
+            "limit 1 offset 0", nativeQuery = true)
+    Optional<VisitLocation> findPreviousChippingVisitedLocation(Long animalId, OffsetDateTime visitTime);
+
+    @Query(value = "select vl.* from visit_locations as vl " +
+            "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
+            "where avl.animal_id = ?1 and " +
+            "vl.date_time_of_visit_location_point > ?2 " +
+            "order by vl.date_time_of_visit_location_point " +
+            "limit 1 offset 0", nativeQuery = true)
+    Optional<VisitLocation> findNextVisitedLocation(Long animalId, OffsetDateTime visitTime);
+
+    @Query(value = "select vl.* from visit_locations as vl " +
+            "left join animals_visit_locations as avl on vl.visit_location_id = avl.location_id " +
+            "left join locations as l on vl.location_point_id = l.location_id " +
+            "left join animals a on avl.animal_id = a.animal_id " +
+            "where a.animal_id = ?1 and " +
+            "vl.date_time_of_visit_location_point > ?2 " +
+            "order by vl.date_time_of_visit_location_point " +
+            "limit 1 offset 0", nativeQuery = true)
+    Optional<VisitLocation> findNextChippingVisitedLocation(Long animalId, OffsetDateTime visitTime);
 }

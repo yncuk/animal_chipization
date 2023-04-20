@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -74,7 +75,7 @@ public class VisitLocationAnimalServiceImpl implements VisitLocationAnimalServic
             }
         }
         VisitLocation visitLocation = new VisitLocation();
-        visitLocation.setDateTimeOfVisitLocationPoint(OffsetDateTime.now());
+        visitLocation.setDateTimeOfVisitLocationPoint(OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         visitLocation.setLocationPointId(pointId);
         VisitLocation visitLocationNew = visitLocationRepository.save(visitLocation);
         List<Long> visitedLocations;

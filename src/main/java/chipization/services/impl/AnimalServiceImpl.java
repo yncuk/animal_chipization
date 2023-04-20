@@ -1,9 +1,7 @@
 package chipization.services.impl;
 
 import chipization.exceptions.EntityBadRequestException;
-import chipization.mappers.AnimalMapper;
 import chipization.model.*;
-import chipization.model.dto.AnimalDto;
 import chipization.model.dto.GetAnimalsRequest;
 import chipization.model.dto.TypeDto;
 import chipization.model.enums.AnimalGender;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,7 +92,7 @@ public class AnimalServiceImpl implements AnimalService {
         locationRepository.findById(animal.getChippingLocationId())
                 .orElseThrow(() -> new EntityNotFoundException("Не найдена точка локации"));
         animal.setLifeStatus(LifeStatus.ALIVE);
-        animal.setChippingDateTime(OffsetDateTime.now());
+        animal.setChippingDateTime(OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         VisitLocation visitLocation = new VisitLocation();
         visitLocation.setLocationPointId(animal.getChippingLocationId());
         visitLocation.setDateTimeOfVisitLocationPoint(animal.getChippingDateTime());

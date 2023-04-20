@@ -24,11 +24,7 @@ create table if not exists locations
         primary key
         unique,
     latitude    double precision not null,
-    longitude   double precision not null,
-    area_id     bigint
-        constraint locations_areas_area_id_fk
-            references areas
-            on delete cascade
+    longitude   double precision not null
 );
 create table if not exists animals
 (
@@ -92,4 +88,13 @@ create table if not exists animals_visit_locations
         constraint animals_visit_locations_visit_locations_visit_location_id_fk
             references visit_locations
             on delete cascade
+);
+create table if not exists areas_points
+(
+    area_id     bigint not null
+        constraint areas_points_areas_area_id_fk
+            references areas,
+    location_id bigint not null
+        constraint areas_points_locations_location_id_fk
+            references locations
 );

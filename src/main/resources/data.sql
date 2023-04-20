@@ -1,3 +1,4 @@
+delete from areas_points;
 delete from animals_type_animal;
 delete from animals_visit_locations;
 delete from type_animal;

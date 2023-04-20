@@ -4,7 +4,6 @@ import chipization.model.VisitLocation;
 import chipization.model.dto.VisitLocationDto;
 import chipization.model.dto.VisitLocationResponse;
 
-import java.time.OffsetDateTime;
 import java.util.Collection;
 
 public interface VisitLocationAnimalService {

@@ -1,8 +1,7 @@
 package chipization.controllers;
 
-import chipization.model.User;
+import chipization.model.Analytics;
 import chipization.model.dto.AreaDto;
-import chipization.model.dto.UserDto;
 import chipization.services.AreaService;
 import chipization.services.AuthorizationService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/areas")
@@ -29,7 +29,7 @@ public class AreaController {
     }
 
     @PostMapping
-    public ResponseEntity<AreaDto> createUser(@RequestHeader(value = "Authorization", required = false) String auth,
+    public ResponseEntity<AreaDto> createArea(@RequestHeader(value = "Authorization", required = false) String auth,
                                               @Valid @RequestBody AreaDto areaDto) {
         authorizationService.checkAuthorizationForAdminRights(auth);
         return new ResponseEntity<>(areaService.createArea(areaDto), HttpStatus.CREATED);
@@ -47,5 +47,14 @@ public class AreaController {
                        @PathVariable Long areaId) {
         authorizationService.checkAuthorizationForAdminRights(auth);
         areaService.delete(areaId);
+    }
+
+    @GetMapping("/{areaId}/analytics")
+    public ResponseEntity<Analytics> analytics(@RequestHeader(value = "Authorization", required = false) String auth,
+                                               @PathVariable Long areaId,
+                                               @RequestParam(required = false) String startDate,
+                                               @RequestParam(required = false) String endDate) throws ParseException {
+        authorizationService.checkAuthorization(auth);
+        return ResponseEntity.ok(areaService.analytics(areaId, startDate, endDate));
     }
 }

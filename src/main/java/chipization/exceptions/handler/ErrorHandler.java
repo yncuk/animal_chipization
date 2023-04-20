@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.persistence.EntityNotFoundException;
+import java.text.ParseException;
 
 @Slf4j
 @RestControllerAdvice
@@ -20,6 +21,13 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(final EntityBadRequestException e) {
+        log.debug("Ошибка 400, сообщение об ошибке: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBadParse(final ParseException e) {
         log.debug("Ошибка 400, сообщение об ошибке: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
@@ -51,7 +59,6 @@ public class ErrorHandler {
         log.debug("Ошибка 409, сообщение об ошибке: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-
 
 
 }

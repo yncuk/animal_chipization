@@ -8,11 +8,14 @@ import chipization.model.dto.LocationDtoResponse;
 import chipization.repositories.AnimalRepository;
 import chipization.repositories.LocationRepository;
 import chipization.services.LocationService;
+import com.github.davidmoten.geo.GeoHash;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Base64;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +33,9 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public LocationDtoResponse create(LocationDto locationDto) {
-        if (locationRepository.findByLatitudeAndLongitude(locationDto.getLatitude(), locationDto.getLongitude()).isPresent()) {
-            throw new DataIntegrityViolationException("Точка локации с такими latitude и longitude уже существует");
-        }
-        return LocationMapper.toLocationDtoResponse(locationRepository.save(LocationMapper.toLocationFromLocationDto(locationDto)));
+        Optional<Location> location = locationRepository.findByLatitudeAndLongitude(locationDto.getLatitude(), locationDto.getLongitude());
+        return location.map(LocationMapper::toLocationDtoResponse)
+                .orElseGet(() -> LocationMapper.toLocationDtoResponse(locationRepository.save(LocationMapper.toLocationFromLocationDto(locationDto))));
     }
 
     @Override
@@ -61,6 +63,23 @@ public class LocationServiceImpl implements LocationService {
         locationRepository.findById(pointId)
                 .orElseThrow(() -> new EntityNotFoundException("Не найдена точка локации"));
         locationRepository.deleteById(pointId);
+    }
+
+    @Override
+    public LocationDtoResponse findByLatitudeAndLongitude(Double latitude, Double longitude) {
+        return LocationMapper.toLocationDtoResponse(locationRepository.findByLatitudeAndLongitude(latitude, longitude)
+                .orElseThrow(() -> new EntityNotFoundException("Не найдена локация")));
+    }
+
+    @Override
+    public String getGeoHash(Double latitude, Double longitude) {
+        return GeoHash.encodeHash(latitude, longitude);
+    }
+
+    @Override
+    public String getGeoHashInBase64(Double latitude, Double longitude) {
+        String geoHash = getGeoHash(latitude, longitude);
+        return Base64.getEncoder().encodeToString(geoHash.getBytes());
     }
 
     private void validatePointId(Long pointId) {

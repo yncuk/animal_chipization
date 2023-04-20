@@ -11,4 +11,11 @@ public interface LocationService {
     LocationDtoResponse update(Long pointId, LocationDto locationDto);
 
     void delete(Long pointId);
+
+    LocationDtoResponse findByLatitudeAndLongitude(Double latitude, Double longitude);
+
+    String getGeoHash(Double latitude, Double longitude);
+
+    String getGeoHashInBase64(Double latitude, Double longitude);
+
 }
